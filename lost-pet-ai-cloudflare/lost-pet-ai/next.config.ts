@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { initOpenNextCloudflareForDev } from "@opennextjs/cloudflare";
 
 const isDev = process.env.NODE_ENV !== "production";
 const supabaseHost = (() => {
@@ -41,3 +42,6 @@ const nextConfig: NextConfig = {
 };
 
 export default nextConfig;
+
+// Lets `npm run dev` use Cloudflare bindings (like Workers AI) on your computer.
+initOpenNextCloudflareForDev();

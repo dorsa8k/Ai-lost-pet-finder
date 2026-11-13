@@ -7,6 +7,9 @@ import { LABELS, type FlagReason, type OrgType, type PetReport } from "@/lib/typ
 import { ActionButton, ApiForm } from "@/components/ApiForm";
 import { SetupNotice } from "@/components/Notices";
 import { isSupabaseConfigured } from "@/lib/config";
+import { getImageEmbedder } from "@/lib/ai/embeddings";
+import { isEmailConfigured } from "@/lib/notify/email";
+import { loadMatchConfig } from "@/lib/matching/score";
 
 export const metadata: Metadata = { title: "Admin", robots: { index: false } };
 
@@ -59,6 +62,20 @@ export default async function AdminPage() {
     db.from("contact_messages").select("*").order("created_at", { ascending: false }).limit(20),
   ]);
 
+  const [embDone, embPending, embFailed, matchCount, fbSame, fbNot, fbUnsure, notifCount, emailSent, embedder] = await Promise.all([
+    count("photo_embeddings", (q) => q.eq("status", "done")),
+    count("photo_embeddings", (q) => q.eq("status", "pending")),
+    count("photo_embeddings", (q) => q.eq("status", "failed")),
+    count("report_matches"),
+    count("match_feedback", (q) => q.eq("verdict", "likely_same")),
+    count("match_feedback", (q) => q.eq("verdict", "not_same")),
+    count("match_feedback", (q) => q.eq("verdict", "unsure")),
+    count("notifications"),
+    count("notifications", (q) => q.eq("email_status", "sent")),
+    getImageEmbedder(),
+  ]);
+  const matchCfg = loadMatchConfig();
+
   const emailById = new Map((usersResult.data?.users ?? []).map((u) => [u.id, u.email ?? ""]));
   const orgName = new Map((orgs ?? []).map((o) => [o.id, o.name]));
 
@@ -82,6 +99,40 @@ export default async function AdminPage() {
         <p className="text-sm text-muted mt-3">
           Reunions are reported by users and are not independently verified. AI match statistics and CSV export arrive in later phases.
         </p>
+      </section>
+
+      <section aria-labelledby="ai-heading">
+        <h2 id="ai-heading" className="text-2xl font-bold mb-2">AI photo matching</h2>
+        <ul className="mb-4 space-y-1">
+          <li>
+            Photo analysis:{" "}
+            <strong>{embedder ? `on (${embedder.model}, via ${embedder.via === "binding" ? "Workers AI binding" : "Workers AI REST API"})` : "OFF — Workers AI binding not found (see README)"}</strong>
+          </li>
+          <li>
+            Resemblance labels:{" "}
+            <strong>{matchCfg.strongAt !== null ? `calibrated (strong ≥ ${matchCfg.strongAt}, moderate ≥ ${matchCfg.moderateAt})` : "not calibrated yet — users see rankings only"}</strong>
+          </li>
+          <li>
+            Email alerts: <strong>{isEmailConfigured() ? "on (Resend)" : "off — RESEND_API_KEY / EMAIL_FROM not set"}</strong>
+          </li>
+        </ul>
+        <dl className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+          <Stat label="Photos analysed" real={embDone} />
+          <Stat label="Photos waiting" real={embPending} />
+          <Stat label="Photos failed" real={embFailed} />
+          <Stat label="Possible matches suggested" real={matchCount} />
+          <Stat label="Feedback: looks like the same" real={fbSame} />
+          <Stat label="Feedback: not the same" real={fbNot} />
+          <Stat label="Feedback: unsure" real={fbUnsure} />
+          <Stat label="Alerts created (emails sent)" real={notifCount} />
+        </dl>
+        <p className="text-sm text-muted mt-2">{emailSent} alert emails sent. Counts include demo records. Feedback is self-reported and not verified.</p>
+        <div className="mt-4 flex flex-wrap gap-3">
+          {(embPending > 0 || embFailed > 0) && (
+            <ActionButton action="/api/admin/ai" values={{}} label="Retry photo analysis" className="btn btn-teal btn-small" pendingLabel="Analysing…" />
+          )}
+          <ActionButton action="/api/admin/ai" values={{ mode: "rematch_recent" }} label="Re-run matching for recent reports" pendingLabel="Matching…" />
+        </div>
       </section>
 
       <section aria-labelledby="apps-heading">

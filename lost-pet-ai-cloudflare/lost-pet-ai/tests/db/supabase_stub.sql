@@ -18,6 +18,9 @@ $$;
 grant usage on schema auth to anon, authenticated, service_role;
 grant execute on function auth.uid() to anon, authenticated, service_role;
 
+create schema extensions;
+grant usage on schema extensions to anon, authenticated, service_role;
+
 create schema storage;
 create table storage.buckets (
   id text primary key, name text, public boolean,

@@ -25,7 +25,11 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   }
 
   const admin = createAdminClient();
-  const { data: priv } = await admin.from("report_private").select("manage_token_hash").eq("report_id", id).maybeSingle();
+  const { data: priv } = await admin
+    .from("report_private")
+    .select("manage_token_hash, notify_email")
+    .eq("report_id", id)
+    .maybeSingle();
   if (!priv || !verifyToken(body.token ?? "", priv.manage_token_hash)) {
     return jsonError(403, "This manage link isn't valid. Check you copied the whole link.");
   }
@@ -40,6 +44,10 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       log.error("manage_status_failed", { error: error.message });
       return jsonError(500, SERVER_PROBLEM);
     }
+  } else if (action === "email_on" || action === "email_off") {
+    const { error } = await admin.from("report_private").update({ notify_email: action === "email_on" }).eq("report_id", id);
+    if (error) return jsonError(500, SERVER_PROBLEM);
+    priv.notify_email = action === "email_on";
   } else if (action !== "view") {
     return jsonError(400, "Unknown action.");
   }
@@ -56,5 +64,5 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       .eq("report_id", id)
       .order("created_at", { ascending: false }),
   ]);
-  return NextResponse.json({ ok: true, report, messages: messages ?? [] });
+  return NextResponse.json({ ok: true, report, messages: messages ?? [], notifyEmail: priv.notify_email !== false });
 }

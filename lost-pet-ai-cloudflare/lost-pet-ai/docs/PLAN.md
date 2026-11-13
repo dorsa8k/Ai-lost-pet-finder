@@ -49,7 +49,8 @@ Phase 3 adds:
   checked on the server, which strips all metadata (GPS, EXIF) in plain JavaScript
   because Workers can't run native image libraries.
 
-## Phase 2 — AI matching (next)
+## Phase 2 — AI matching (built — see docs/PHASE2_AI_MATCHING.md)
+Original plan, kept for reference:
 1. Benchmark 2–3 open models (CLIP ViT-B/32, SigLIP base, a pet re-identification
    model if a suitably licensed one exists) on a labelled, licensed test set of
    same-animal photo pairs. Report Recall@5 and Recall@10.

@@ -11,6 +11,9 @@
     "directory": ".open-next/assets",
     "binding": "ASSETS"
   },
+  // Workers AI (used for AI photo matching). No API key needed: the app calls
+  // the model through this binding. Billed per use on your Cloudflare account.
+  "ai": { "binding": "AI" },
   // Keep variables you set in the Cloudflare dashboard when deploying.
   "keep_vars": true,
   "observability": { "enabled": true },

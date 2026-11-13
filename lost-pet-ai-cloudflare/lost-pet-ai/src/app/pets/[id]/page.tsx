@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getReport } from "@/lib/reports";
 import { getCurrentUser } from "@/lib/auth";
-import { isSupabaseConfigured, publicPhotoUrl, SITE_URL } from "@/lib/config";
+import { absolutePhotoUrl, isSupabaseConfigured, publicPhotoUrl, SITE_URL } from "@/lib/config";
 import { formatDateTime, reportTitle, shortDescription, timeAgo } from "@/lib/format";
 import { FLAG_REASONS, LABELS } from "@/lib/types";
 import { PetPhoto } from "@/components/PetPhoto";
@@ -21,7 +21,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!report) return { title: "Report not found" };
   const title = reportTitle(report);
   const description = `${shortDescription(report)} — ${report.kind === "lost" ? "last seen" : "found"} in ${report.suburb}.`;
-  const image = report.report_photos[0] ? publicPhotoUrl(report.report_photos[0].storage_path) : undefined;
+  const image = report.report_photos[0] ? absolutePhotoUrl(report.report_photos[0].storage_path) : undefined;
   return { title, description, openGraph: { title, description, images: image ? [image] : undefined } };
 }
 
@@ -142,6 +142,7 @@ export default async function PetPage({ params }: Props) {
               <h2 id="contact-heading" className="text-2xl font-bold">This is your report</h2>
               <p className="mt-2">Read messages and update the status from your dashboard.</p>
               <div className="flex flex-wrap gap-3 mt-4">
+                <Link href={`/pets/${report.id}/matches`} className="btn btn-coral">See possible matches</Link>
                 <Link href="/dashboard" className="btn btn-teal">Go to my dashboard</Link>
                 {report.status === "active" && (
                   <ActionButton action={`/api/reports/${report.id}/status`} values={{ status: "reunited" }} label="Mark as reunited" className="btn btn-outline" />

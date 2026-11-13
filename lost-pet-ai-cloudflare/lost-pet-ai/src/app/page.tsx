@@ -2,6 +2,7 @@ import Link from "next/link";
 import { PetCard, PosterCard } from "@/components/PetCard";
 import { SearchForm } from "@/components/SearchForm";
 import { isSupabaseConfigured, APP_NAME } from "@/lib/config";
+import { getImageEmbedder } from "@/lib/ai/embeddings";
 import { getPublicCounts, getRecentReports } from "@/lib/reports";
 import type { ReportWithPhotos } from "@/lib/types";
 
@@ -20,7 +21,7 @@ const FAQ = [
   },
   {
     q: "How does AI matching work?",
-    a: "It's being built now. Each photo will be turned into a numeric 'fingerprint' and compared with photos of pets reported nearby, along with species, colour, distance and dates. Results will always be shown as possible matches for a person to check — never as proof.",
+    a: "Each photo is turned into a numeric 'fingerprint' by an AI image model (Google's EmbeddingGemma 2) and compared with photos of pets reported nearby. That's combined with species, colour, size, distance and dates to suggest the top five possible matches, with the reasons. Suggestions always need a person to check them — they're never proof of identity or ownership.",
   },
   {
     q: "Which areas do you cover?",
@@ -44,6 +45,7 @@ async function loadHomeData(): Promise<{ recent: ReportWithPhotos[]; counts: { l
 
 export default async function HomePage() {
   const { recent, counts } = await loadHomeData();
+  const matchingLive = isSupabaseConfigured() && (await getImageEmbedder()) !== null;
   const posters = recent.slice(0, 3);
   const tilts = [-3, 2, -1.5];
 
@@ -69,8 +71,10 @@ export default async function HomePage() {
             </Link>
           </div>
           <p className="mt-5 text-muted max-w-xl">
-            Serving Rowville, Knox and Melbourne&apos;s outer east. Reporting and search are live now; photo matching is
-            in development.
+            Serving Rowville, Knox and Melbourne&apos;s outer east.{" "}
+            {matchingLive
+              ? "AI photo matching is live in early testing — every suggestion is checked by people."
+              : "Reporting and search are live now; photo matching is being switched on."}
           </p>
         </div>
 
@@ -161,11 +165,24 @@ export default async function HomePage() {
           </p>
         </div>
         <div className="bg-mint rounded-2xl p-6">
-          <p className="font-display text-2xl font-bold text-teal">Status: in development</p>
-          <p className="mt-2">
-            Photo matching isn&apos;t switched on yet. Photos you upload now are stored and will be included when it
-            launches, so reporting today still helps.
-          </p>
+          {matchingLive ? (
+            <>
+              <p className="font-display text-2xl font-bold text-teal">Status: live, in early testing</p>
+              <p className="mt-2">
+                When you report a pet with photos, we automatically suggest up to five possible matches and keep checking
+                as new reports arrive. We&apos;re still measuring accuracy on real test photos, so treat every suggestion
+                as a lead to check — not an answer.
+              </p>
+            </>
+          ) : (
+            <>
+              <p className="font-display text-2xl font-bold text-teal">Status: being switched on</p>
+              <p className="mt-2">
+                Photo matching isn&apos;t running on this site yet. Photos you upload now are stored and will be
+                analysed once it is, so reporting today still helps.
+              </p>
+            </>
+          )}
         </div>
       </section>
 

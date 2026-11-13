@@ -96,6 +96,9 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
                     </h2>
                     <p className="text-muted">{r.suburb}, {formatDateTime(r.event_at)}</p>
                     <div className="flex flex-wrap gap-3 mt-4">
+                      <Link href={`/pets/${r.id}/matches`} className="btn btn-coral btn-small">
+                        Possible matches
+                      </Link>
                       {r.status === "active" ? (
                         <>
                           <ActionButton action={`/api/reports/${r.id}/status`} values={{ status: "reunited" }} label="Mark as reunited" className="btn btn-teal btn-small" />

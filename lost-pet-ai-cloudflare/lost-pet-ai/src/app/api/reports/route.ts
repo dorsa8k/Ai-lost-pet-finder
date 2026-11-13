@@ -1,5 +1,5 @@
-import { NextResponse } from "next/server";
-import { randomUUID } from "node:crypto";
+import { NextResponse, after } from "next/server";
+import { createHash, randomUUID } from "node:crypto";
 import { isSupabaseConfigured, PHOTO_BUCKET } from "@/lib/config";
 import { createAdminClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/auth";
@@ -9,6 +9,7 @@ import { generateManageToken } from "@/lib/tokens";
 import { MAX_PHOTOS, PhotoError, photoPaths, processPhoto, type ProcessedPhoto } from "@/lib/images";
 import { allowRequest, isSameOrigin, jsonError, SERVER_PROBLEM, textFields, TOO_MANY } from "@/lib/http";
 import { log } from "@/lib/logger";
+import { processReport } from "@/lib/matching/engine";
 
 
 /** Creates a lost or found pet report, with photos. */
@@ -74,6 +75,7 @@ export async function POST(request: Request) {
   const reportId = randomUUID();
   const { token, hash } = generateManageToken();
   const uploaded: string[] = [];
+  const freshPhotos = new Map<string, Uint8Array>(); // photo id -> cleaned image, reused for AI analysis
 
   try {
     const { error: reportError } = await admin.from("pet_reports").insert({
@@ -141,8 +143,15 @@ export async function POST(request: Request) {
         position: i,
         width: photo.width,
         height: photo.height,
+        content_hash: createHash("sha256").update(photo.full).digest("hex"),
       });
       if (photoError) throw photoError;
+      // Queue the photo for AI analysis (Phase 2).
+      const { error: queueError } = await admin
+        .from("photo_embeddings")
+        .insert({ photo_id: photoId, report_id: reportId, status: "pending" });
+      if (queueError) throw queueError;
+      freshPhotos.set(photoId, photo.full);
     }
   } catch (e) {
     log.error("create_report_failed", { kind, error: e instanceof Error ? e.message : String(e) });
@@ -153,6 +162,17 @@ export async function POST(request: Request) {
   }
 
   log.info("report_created", { kind, reporterType, photos: processed.length });
+
+  // AI photo analysis + matching runs after the response is sent, so the
+  // reporter isn't kept waiting. Failures are recorded and can be retried.
+  after(async () => {
+    try {
+      await processReport(reportId, freshPhotos);
+    } catch (e) {
+      log.error("matching_failed", { reportId, error: e instanceof Error ? e.message : String(e) });
+    }
+  });
+
   return NextResponse.json({
     ok: true,
     redirect: `/report/submitted/${reportId}`,

@@ -24,9 +24,26 @@
 - Phase 2's AI model will run as a separate service anyway, so Cloudflare doesn't
   change the AI plan. Cloudflare's own Workers AI and Vectorize are options to evaluate then.
 
+## AI matching (Phase 2) limitations
+- The live call to EmbeddingGemma 2 on Workers AI hasn't been run from the build
+  sandbox (no Cloudflare access). Verify after deploying: Admin → AI photo matching.
+- EmbeddingGemma 2 is a general-purpose image model, not trained to identify
+  individual animals. Accuracy on real lost/found photos is unknown until
+  `npm run evaluate` is run on a realistic, consented photo set.
+- Resemblance labels ("strong/some/weak") stay off until thresholds are calibrated.
+- Matching uses approximate (~500 m) public locations, so distances are approximate.
+- Description-only suggestions (no photos) are weaker and labelled as such.
+- Matching runs in the background after a report is saved (Cloudflare `waitUntil`).
+  On the Workers **Free** plan the 10 ms CPU limit may cut this short. If photos
+  stay "waiting", upgrade to Workers Paid or use Admin → Retry photo analysis.
+- Owners viewing their own *hidden* report may not see its photos if their login
+  session has expired (photos route checks the login).
+- There's no scheduled background job yet. Photos that fail are retried when the
+  reporter clicks "Check again", or by an admin.
+
 ## Functional limitations
-- No AI matching yet (Phase 2). The site says so.
-- No email: people must check their dashboard or manage link for messages.
+- Email alerts cover possible matches only (when Resend is configured). Messages
+  from other people are still only shown on the dashboard / manage link.
   Finders without an account must save their manage link — it can't be re-sent yet.
 - One-way messages: the sender shares contact details and the reporter replies
   by email or phone outside the site.
@@ -39,9 +56,7 @@
   licensed same-animal photo pairs.
 
 ## Security and privacy risks
-- **Public photo bucket**: photo URLs work for anyone who has them, even after a
-  report is hidden. The URLs can't be guessed, but consider private storage with
-  signed URLs before launch.
+- **Photos** are now in a private bucket and served only for visible reports (Phase 2).
 - **Spam and abuse**: rate limits are per IP. Determined abusers can rotate IPs.
   Consider CAPTCHA (e.g. Cloudflare Turnstile) on anonymous forms in Phase 4.
 - **Fraudulent claims and scams**: people may pose as owners or demand rewards.

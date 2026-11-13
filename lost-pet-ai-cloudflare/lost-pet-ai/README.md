@@ -1,4 +1,4 @@
-# Lost Pet AI — Phase 1 (Functional MVP)
+# Lost Pet AI — Phases 1–2 (MVP + AI photo matching)
 
 A lost-and-found pet platform for Knox, Rowville and Melbourne's outer east.
 People can report lost and found dogs and cats with photos, search reports, and
@@ -19,6 +19,8 @@ and you get an admin dashboard.
 8. [Put it online (Cloudflare)](#8-put-it-online-cloudflare)
 9. [Day-to-day operation](#9-day-to-day-operation)
 10. [Project structure](#10-project-structure)
+
+**AI photo matching (Phase 2): setup, deployment, evaluation → [`docs/PHASE2_AI_MATCHING.md`](docs/PHASE2_AI_MATCHING.md)**
 
 Also read: [`docs/COSTS.md`](docs/COSTS.md), [`docs/LIMITATIONS_AND_RISKS.md`](docs/LIMITATIONS_AND_RISKS.md),
 [`docs/LAUNCH_CHECKLIST.md`](docs/LAUNCH_CHECKLIST.md), [`docs/PLAN.md`](docs/PLAN.md).
@@ -45,8 +47,10 @@ Also read: [`docs/COSTS.md`](docs/COSTS.md), [`docs/LIMITATIONS_AND_RISKS.md`](d
 | Photo privacy: photos resized in the browser; server strips GPS/EXIF from every upload | Built and tested |
 | Approximate public locations (~500 m) | Built and tested |
 | Database security rules (row-level security) | Built and tested |
-| AI photo matching | **Phase 2 — not built yet** (site says so honestly) |
-| Interactive map, email alerts, QR posters | **Phase 3 — not built yet** |
+| AI photo matching: photo embeddings (EmbeddingGemma 2 on Workers AI), pgvector search, top-5 suggestions with reasons, feedback buttons | Built (Phase 2) — see `docs/PHASE2_AI_MATCHING.md` |
+| In-app alerts and optional email alerts (Resend), with opt-out | Built (Phase 2) |
+| Private photo storage, re-used photo / scam detection | Built (Phase 2) |
+| Interactive map, QR posters | **Phase 3 — not built yet** |
 | CSV export, error monitoring, account self-deletion | **Phase 4 — not built yet** |
 
 Nothing on the site pretends a later-phase feature works. There are no dead buttons.
@@ -141,10 +145,10 @@ To give a vet clinic access: they apply on the **For vets & shelters** page → 
 
 | Command | What it checks | Status when delivered |
 |---|---|---|
-| `npm test` | 30 unit tests: form validation, location privacy, manage-link security, photo cleaning (GPS removal, hidden data, damaged files) | **All passing** (run in the build sandbox) |
-| `npm run test:db` | Database security: 35 checks that each role can only see/change what it should | **All passing** (run in the build sandbox against PostgreSQL 16). Needs PostgreSQL installed locally — optional for you |
+| `npm test` | 49 unit tests: form validation, location privacy, manage-link security, photo cleaning, AI matching scores and explanations, notification rules, AI response handling | **All passing** (run in the build sandbox) |
+| `npm run test:db` | Database security and AI matching search: Phase 1 (35 checks) + Phase 2 (vector ranking, filters, privacy of matches/alerts). Needs PostgreSQL with pgvector | **All passing** (run in the build sandbox against PostgreSQL 16). Needs PostgreSQL installed locally — optional for you |
 | `npm run typecheck` | TypeScript type checking | Checked in the sandbox with stand-in library types; run it for real after `npm install` |
-| `npm run test:e2e` | 10 browser tests of the main journeys, on desktop and mobile sizes | **Written but not yet run** — needs the app running with Supabase. First run: `npx playwright install` |
+| `npm run test:e2e` | 15 browser tests of the main journeys and match privacy, on desktop and mobile sizes | **Written but not yet run** — needs the app running with Supabase. First run: `npx playwright install` |
 
 For the signed-in browser tests, create a confirmed test account and run:
 ```bash
