@@ -1,3 +1,5 @@
+ // Render every page fresh for each visitor, because secrets only exist at runtime.
+   export const dynamic = "force-dynamic";
 import type { Metadata, Viewport } from "next";
 import { Bricolage_Grotesque, Figtree } from "next/font/google";
 import "./globals.css";
