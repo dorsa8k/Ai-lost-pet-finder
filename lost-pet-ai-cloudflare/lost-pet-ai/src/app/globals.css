@@ -1,0 +1,180 @@
+@import "tailwindcss";
+
+/*
+  Design tokens
+  - teal    #0E4A4F  deep teal: primary text on light, primary surfaces
+  - mint    #D3EEE4  soft mint: quiet highlight surfaces
+  - cream   #FBF6EC  warm cream: page background
+  - paper   #FFFFFF  white: forms, cards that hold content
+  - coral   #D2432F  coral: the two most important actions only (AA contrast with white)
+  - ink     #102B2D  body text
+*/
+@theme {
+  --color-teal: #0e4a4f;
+  --color-teal-soft: #2f6d71;
+  --color-mint: #d3eee4;
+  --color-mint-deep: #a9dcc9;
+  --color-cream: #fbf6ec;
+  --color-paper: #ffffff;
+  --color-coral: #d2432f;
+  --color-coral-deep: #b23523;
+  --color-ink: #102b2d;
+  --color-muted: #4d6466;
+  --color-line: #dfe6e1;
+  --color-tape: #f3e3a6;
+
+  --font-display: var(--font-bricolage), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-figtree), ui-sans-serif, system-ui, sans-serif;
+}
+
+html {
+  background: var(--color-cream);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-size: 1.0625rem;
+  line-height: 1.6;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  color: var(--color-teal);
+  line-height: 1.1;
+  text-wrap: balance;
+}
+
+p {
+  text-wrap: pretty;
+}
+
+a {
+  color: var(--color-teal);
+}
+
+:focus-visible {
+  outline: 3px solid var(--color-coral);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Form controls */
+.field-label {
+  display: block;
+  font-weight: 600;
+  color: var(--color-ink);
+  margin-bottom: 0.3rem;
+}
+.field-hint {
+  display: block;
+  font-size: 0.9rem;
+  color: var(--color-muted);
+  margin-top: -0.15rem;
+  margin-bottom: 0.4rem;
+}
+.input {
+  width: 100%;
+  border: 1.5px solid #b9c7c2;
+  background: var(--color-paper);
+  border-radius: 10px;
+  padding: 0.65rem 0.8rem;
+  font: inherit;
+  color: var(--color-ink);
+}
+.input:focus {
+  border-color: var(--color-teal);
+  outline: 3px solid var(--color-mint-deep);
+  outline-offset: 0;
+}
+.input[aria-invalid="true"] {
+  border-color: var(--color-coral);
+  background: #fff6f4;
+}
+textarea.input {
+  min-height: 7rem;
+}
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 999px;
+  padding: 0.75rem 1.35rem;
+  font-weight: 700;
+  text-decoration: none;
+  line-height: 1.2;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: background-color 120ms ease, color 120ms ease;
+}
+.btn:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+.btn-coral {
+  background: var(--color-coral);
+  color: #fff;
+}
+.btn-coral:hover {
+  background: var(--color-coral-deep);
+}
+.btn-teal {
+  background: var(--color-teal);
+  color: #fff;
+}
+.btn-teal:hover {
+  background: #0a3a3e;
+}
+.btn-outline {
+  background: transparent;
+  color: var(--color-teal);
+  border-color: var(--color-teal);
+}
+.btn-outline:hover {
+  background: var(--color-mint);
+}
+.btn-small {
+  padding: 0.45rem 0.9rem;
+  font-size: 0.95rem;
+}
+
+/* The "lost poster" motif — used only in the home hero and on report pages. */
+.poster {
+  background: var(--color-paper);
+  border: 1px solid #e8e1d0;
+  box-shadow: 0 1px 0 #e8e1d0, 0 14px 24px -18px rgba(16, 43, 45, 0.45);
+  position: relative;
+}
+.poster::before {
+  content: "";
+  position: absolute;
+  top: -11px;
+  left: 50%;
+  width: 84px;
+  height: 22px;
+  transform: translateX(-50%) rotate(-3deg);
+  background: var(--color-tape);
+  opacity: 0.85;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .poster-drop {
+    animation: poster-drop 520ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+  @keyframes poster-drop {
+    from {
+      opacity: 0;
+      transform: translateY(-14px) rotate(var(--tilt, 0deg));
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) rotate(var(--tilt, 0deg));
+    }
+  }
+}

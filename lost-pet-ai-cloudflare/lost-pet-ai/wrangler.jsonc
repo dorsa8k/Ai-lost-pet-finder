@@ -1,0 +1,18 @@
+// Cloudflare Workers settings for Lost Pet AI.
+// Secrets (SUPABASE_SERVICE_ROLE_KEY, RATE_LIMIT_SALT) are NOT stored here —
+// add them in the Cloudflare dashboard (see README → "Put it online").
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "lost-pet-ai",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2026-11-13",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  // Keep variables you set in the Cloudflare dashboard when deploying.
+  "keep_vars": true,
+  "observability": { "enabled": true },
+  "upload_source_maps": true
+}
