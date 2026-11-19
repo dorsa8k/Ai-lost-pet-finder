@@ -48,13 +48,20 @@ export default async function SubmittedPage({ params }: { params: Promise<{ id: 
         <ManageLinkPanel reportId={report.id} />
       )}
 
-      <p className="text-muted">
-        Photo matching isn&apos;t available yet. Until it launches, check the{" "}
-        <Link href={`/search?kind=${report.kind === "lost" ? "found" : "lost"}&species=${report.species}`}>
-          {report.kind === "lost" ? "found" : "lost"} {report.species}s already reported
-        </Link>
-        .
-      </p>
+      <div className="bg-paper border border-line rounded-2xl p-6">
+        <h2 className="text-2xl font-bold">Checking for possible matches</h2>
+        <p className="mt-2">
+          Our AI is comparing your report with {report.kind === "lost" ? "found" : "lost"} {report.species}s reported
+          nearby. It takes about a minute, and new reports are checked against yours automatically.
+        </p>
+        {user && report.owner_id === user.id ? (
+          <Link href={`/pets/${report.id}/matches`} className="btn btn-teal mt-4">
+            See possible matches
+          </Link>
+        ) : (
+          <p className="mt-2">Open your private manage link (above) to see possible matches.</p>
+        )}
+      </div>
     </div>
   );
 }
