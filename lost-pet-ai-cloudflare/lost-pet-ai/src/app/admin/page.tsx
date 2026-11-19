@@ -35,7 +35,7 @@ export default async function AdminPage() {
   const db = createAdminClient();
 
   const count = async (table: string, filter?: (q: any) => any) => {
-    let q: any = db.from(table).select("id", { count: "exact", head: true });
+    let q: any = db.from(table).select("*", { count: "exact", head: true });
     if (filter) q = filter(q);
     const { count } = await q;
     return count ?? 0;
