@@ -29,6 +29,7 @@ export function ManageReport({ reportId }: { reportId: string }) {
   const [report, setReport] = useState<Summary | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [notice, setNotice] = useState<string | null>(null);
+  const [notifyEmail, setNotifyEmail] = useState(true);
   const [busy, setBusy] = useState(false);
 
   const call = useCallback(
@@ -48,8 +49,20 @@ export function ManageReport({ reportId }: { reportId: string }) {
         }
         setReport(data.report);
         setMessages(data.messages);
+        setNotifyEmail(data.notifyEmail !== false);
         setState("ready");
-        if (action !== "view") setNotice(action === "reunited" ? "Marked as reunited. Thank you!" : action === "closed" ? "Report closed." : "Report reopened.");
+        if (action !== "view")
+          setNotice(
+            action === "reunited"
+              ? "Marked as reunited. Thank you!"
+              : action === "closed"
+                ? "Report closed."
+                : action === "email_on"
+                  ? "Match emails turned on."
+                  : action === "email_off"
+                    ? "Match emails turned off."
+                    : "Report reopened.",
+          );
       } catch {
         setError("We couldn't reach the server. Check your connection and refresh the page.");
         setState("error");
@@ -116,6 +129,27 @@ export function ManageReport({ reportId }: { reportId: string }) {
           )}
         </div>
       </div>
+
+      <section aria-labelledby="matches-heading" className="bg-mint rounded-2xl p-6">
+        <h2 id="matches-heading" className="text-2xl font-bold">AI possible matches</h2>
+        <p className="mt-2">
+          We compare your report with {report.kind === "lost" ? "found" : "lost"} reports nearby, including new ones as they
+          arrive. Suggestions always need checking by a person.
+        </p>
+        <div className="flex flex-wrap items-center gap-3 mt-4">
+          <a href={`/pets/${report.id}/matches#t=${token}`} className="btn btn-teal btn-small">
+            View possible matches
+          </a>
+          <button
+            type="button"
+            className="btn btn-outline btn-small"
+            disabled={busy}
+            onClick={() => call(notifyEmail ? "email_off" : "email_on", token)}
+          >
+            {notifyEmail ? "Turn off match emails" : "Turn on match emails"}
+          </button>
+        </div>
+      </section>
 
       <section aria-labelledby="messages-heading">
         <h2 id="messages-heading" className="text-2xl font-bold mb-3">

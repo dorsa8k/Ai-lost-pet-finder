@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { APP_NAME, isSupabaseConfigured } from "@/lib/config";
 import { getCurrentUser, type CurrentUser } from "@/lib/auth";
+import { createUserClient } from "@/lib/supabase/server";
 import { Logo } from "./Logo";
 
 const NAV = [
@@ -13,9 +14,18 @@ const NAV = [
 
 export async function SiteHeader() {
   let user: CurrentUser | null = null;
+  let unread = 0;
   if (isSupabaseConfigured()) {
     try {
       user = await getCurrentUser();
+      if (user) {
+        const supabase = await createUserClient();
+        const { count } = await supabase
+          .from("notifications")
+          .select("id", { count: "exact", head: true })
+          .is("read_at", null);
+        unread = count ?? 0;
+      }
     } catch {
       user = null;
     }
@@ -25,6 +35,9 @@ export async function SiteHeader() {
     <>
       <Link href="/dashboard" className="font-semibold">
         My dashboard
+      </Link>
+      <Link href="/notifications" className="font-semibold" aria-label={unread ? `Alerts, ${unread} unread` : "Alerts"}>
+        Alerts{unread > 0 && <span className="ml-1 rounded-full bg-coral text-white px-2 text-sm">{unread}</span>}
       </Link>
       {user.role !== "user" && (
         <Link href={user.role === "admin" ? "/admin" : "/partner/dashboard"} className="font-semibold">

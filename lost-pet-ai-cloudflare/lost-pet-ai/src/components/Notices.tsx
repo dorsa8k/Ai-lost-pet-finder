@@ -5,8 +5,9 @@ export function SetupNotice({ feature = "This page" }: { feature?: string }) {
     <div role="alert" className="rounded-xl border-2 border-coral bg-[#fff6f4] p-5 max-w-2xl">
       <p className="font-bold text-lg">{feature} needs the database to be connected.</p>
       <p className="mt-2">
-        The Supabase settings are missing, so nothing can be loaded or saved yet. Follow “Set up Supabase” in
-        README.md, add the values to <code>.env.local</code>, then restart the app.
+        The Supabase settings are missing, so nothing can be loaded or saved yet. On Cloudflare, add them under
+        Settings → Variables and Secrets (README section 8). On your computer, add them to <code>.env.local</code> and
+        restart the app.
       </p>
     </div>
   );
