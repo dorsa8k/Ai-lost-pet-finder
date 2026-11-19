@@ -22,8 +22,15 @@ export function isSupabaseConfigured(): boolean {
   return getPublicSupabaseEnv() !== null && !!process.env.SUPABASE_SERVICE_ROLE_KEY;
 }
 
+/**
+ * Photos are stored in a PRIVATE bucket and served through the app's own
+ * /photos/... route, which checks the report is visible to the viewer first.
+ */
 export function publicPhotoUrl(storagePath: string): string {
-  const env = getPublicSupabaseEnv();
-  if (!env) return "";
-  return `${env.url}/storage/v1/object/public/${PHOTO_BUCKET}/${storagePath}`;
+  return `/photos/${storagePath}`;
+}
+
+/** Absolute URL for places outside the site (link previews, emails). */
+export function absolutePhotoUrl(storagePath: string): string {
+  return `${SITE_URL}${publicPhotoUrl(storagePath)}`;
 }
